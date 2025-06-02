@@ -11,7 +11,7 @@ def generate(selected):
     genres = ['6-highest-rated', '2-alternative-rock', '34-ambient', '62-black-metal', '143-classical',
               '507-contemporary-folk', '132-dance', '6-electronic', '263-edm', '9-experimental', '5-folk',
               '49-hardcore-punk', '3-hip-hop', '4-indie-pop', '1-indie-rock', '35-jazz', '40-metal', '15-pop',
-              '103-pop-rock', '28-punk', '22-r-and-b', '7-rock', '213-trap-rap']
+              '103-pop-rock', '28-punk', '22-r-and-b', '7-rock', '213-trap-rap', '26-shoegaze']
     while True:
         try:
             a = [genres[int(i)] for i in selected]
@@ -52,6 +52,6 @@ def generate(selected):
             spotify = links[2].get('href')
             print( name, cover, date, genres, am, spotify)
             return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}
-            break
+
         except:
             time.sleep(2)

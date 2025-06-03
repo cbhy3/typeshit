@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>findmusic type shit</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>findmusic type shit - from album</title>
+</head>
+<style>
+   :root {
             --primary: #5e72e4;
             --primary-light: #7e8ef1;
             --secondary: #11cdef;
@@ -436,7 +435,51 @@
     .theme-toggle i {
         font-size: 1.2rem;
     }
-    .nav-links {
+    .form-label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: inset 0 2px 4px rgba(50, 50, 93, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.2);
+}
+
+/* Dark mode overrides */
+body.dark-mode .form-label {
+    color: #f8f9fe;
+}
+
+body.dark-mode .form-input {
+    background: #4a5568;
+    border: 1px solid #718096;
+    color: #f8f9fe;
+}
+
+body.dark-mode .form-input::placeholder {
+    color: #a0aec0;
+}
+.form-wrapper {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+.nav-links {
     margin-top: 1rem;
     display: flex;
     gap: 1.25rem;
@@ -464,11 +507,12 @@ body.dark-mode .nav-link {
 body.dark-mode .nav-link:hover {
     color: #c3dafe;
 }
-    </style>
-</head>
+
+</style>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
 <body>
-    <div class="container">
-        <header>
+       <header>
     <div class="logo">findmusic</div>
     <p class="tagline">type shit</p>
     <nav class="nav-links">
@@ -476,27 +520,18 @@ body.dark-mode .nav-link:hover {
         <a href="/album" class="nav-link">Discover by Album</a>
     </nav>
 </header>
-        <form method="POST">
-        <div class="card">
-            <h1>Select your favorite genres</h1>
-            <div class="genre-list">
-                {% set genres = [
-                    "All Genres", "Alt-Rock", "Ambient", "Black Metal", "Classical", "Contemporary Folk",
-                    "Dance", "Electronic", "EDM", "Experimental", "Folk", "Hardcore Punk", "Hip-Hop",
-                    "Indie Pop", "Indie Rock", "Jazz", "Metal", "Pop", "Pop-Rock", "Punk", "R&B", "Rock", "Trap-Rap", "Shoegaze"
-                ] %}
-                {% for genre in genres %}
-                <div class="genre-item" data-genre="{{ loop.index0 }}">
-                    <span class="checkmark"><i class="fas fa-check"></i></span>
-                    <input type="checkbox" name="options" value="{{ loop.index0 }}" id="genre-{{ loop.index0 }}">
-                    <label for="genre-{{ loop.index0 }}">{{ genre }}</label>
-                </div>
-                {% endfor %}
-            </div>
-                    <input type="submit" value="Submit" class="btn-submit" id="submit-btn">
-        </div>
-        </form>
-        {% if selected_options %}
+    <div class = "container">
+ <div class="card">
+  <h1>Explore Music Recommendations Based on an Album</h1>
+  <div class="form-wrapper">
+    <form method="POST">
+      <label for="link" class="form-label">Enter a Spotify album link:</label>
+      <input type="url" id="link" name="link" class="form-input" placeholder="https://spotify.com" required>
+      <button type="submit" class="btn-submit">Submit</button>
+    </form>
+  </div>
+</div>
+  {% if link %}
         <div class="result-card">
             <img src="/image?url={{ result['cover'] | urlencode }}" alt="Album cover" class="album-art">
             <h2 class="album-title">{{ result["name"] }}</h2>
@@ -525,47 +560,11 @@ body.dark-mode .nav-link:hover {
             <h3>find music</h3>
             <p>type shit</p>
         </div>
-        {% endif %}
-
-
+    {% endif %}
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const genreItems = document.querySelectorAll('.genre-item');
-            const submitBtn = document.getElementById('submit-btn');
-
-            genreItems.forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-
-                item.addEventListener('click', function(e) {
-                    if (e.target !== checkbox) {
-                        checkbox.checked = !checkbox.checked;
-                    }
-
-                    if (checkbox.checked) {
-                        item.classList.add('selected');
-                    } else {
-                        item.classList.remove('selected');
-                    }
-
-                    const anySelected = document.querySelectorAll('.genre-item input:checked').length > 0;
-                    submitBtn.disabled = !anySelected;
-                });
-            });
-
-
-            const form = document.querySelector('form');
-            submitBtn.addEventListener('click', function() {
-                if (!submitBtn.disabled) {
-                    form.submit();
-                }
-            });
-
-            const anySelected = document.querySelectorAll('.genre-item input:checked').length > 0;
-            submitBtn.disabled = !anySelected;
-        });
-        document.addEventListener('DOMContentLoaded', function() {
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
 
         const themeToggle = document.createElement('button');
         themeToggle.className = 'theme-toggle';
@@ -587,6 +586,5 @@ body.dark-mode .nav-link:hover {
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         });
     });
-    </script>
-</body>
+</script>
 </html>

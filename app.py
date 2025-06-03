@@ -2,7 +2,7 @@ from io import BytesIO
 
 import requests
 from flask import Flask, render_template, request, redirect, url_for, send_file
-from t import generate
+from t import *
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -22,5 +22,15 @@ def proxy():
 
     response = requests.get(image_url)
     return send_file(BytesIO(response.content), mimetype='image/jpeg')
+
+@app.route('/album', methods = ['GET', 'POST'])
+def from_album():
+    link = None
+    result = None
+    if request.method == 'POST':
+        link = request.form.get('link')
+        result = find_similiar(link)
+
+    return render_template('from_album.html', link=link, result = result )
 if __name__ == '__main__':
     app.run(debug=True)

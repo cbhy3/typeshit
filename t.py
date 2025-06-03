@@ -69,7 +69,7 @@ def find_similiar(spotify):
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id= id,
                                                client_secret= secret,
                                                redirect_uri="https://findmusictypeshit.onrender.com/album", 
-                                               scope="user-library-read"))
+                                               scope="user-library-read", cache_path="/tmp/.cache"))
     try:
         album = sp.album(spotify)
     except:

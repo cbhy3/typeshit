@@ -10,7 +10,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") 
 
 
-
 @app.route('/', methods=['GET', 'POST'])
 def form():
     selected_options = []
@@ -38,7 +37,6 @@ def from_album():
         result = find_similiar(link)
 
     return render_template('from_album.html', link=link, result = result )
-
 
 if __name__ == '__main__':
     app.run(debug=True)

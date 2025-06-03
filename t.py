@@ -65,15 +65,16 @@ def find_similiar(spotify):
     print(load_dotenv())
     id =os.getenv("CLIENT_ID")
     secret = os.getenv("CLIENT_SECRET")
-    
+    print(id)
+    print(secret)
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id= id,
                                                client_secret= secret,
                                                redirect_uri="https://findmusictypeshit.onrender.com/album", 
-                                               scope="user-library-read", cache_path="/tmp/.cache"))
+                                               scope="user-library-read"))
     try:
         album = sp.album(spotify)
-    except:
-         print('fk')
+    except Exception as e:
+         print(e)
          return False
     name = album['name']
     artist = album['artists'][0]['name']

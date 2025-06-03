@@ -9,7 +9,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import os
 from urllib.parse import quote_plus
 import math
-
+from flask import session
 def get_soup(url):
         scraper = cloudscraper.create_scraper()
         headers = {
@@ -62,14 +62,11 @@ def generate(selected):
             time.sleep(2)
 
 def find_similiar(spotify):
-    print(load_dotenv())
-    id =os.getenv("CLIENT_ID")
-    secret = os.getenv("CLIENT_SECRET")
-    
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id= id,
-                                               client_secret= secret,
-                                               redirect_uri="findmusictypeshit.onrender.com/album", 
-                                               scope="user-library-read"))
+    token_info = session.get("token_info")
+    if not token_info:
+        return False
+
+    sp = spotipy.Spotify(auth=token_info["access_token"])
     try:
         album = sp.album(spotify)
     except:

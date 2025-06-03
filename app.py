@@ -1,9 +1,23 @@
 from io import BytesIO
 
 import requests
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import session,Flask, render_template, request, redirect, url_for, send_file
 from t import *
+import os
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY") 
+
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("https://findmusictypeshit.onrender.com/callback")
+SCOPE = "user-library-read"
+
+sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
+                        client_secret=CLIENT_SECRET,
+                        redirect_uri=REDIRECT_URI,
+                        scope=SCOPE)
 
 @app.route('/', methods=['GET', 'POST'])
 def form():
@@ -32,5 +46,15 @@ def from_album():
         result = find_similiar(link)
 
     return render_template('from_album.html', link=link, result = result )
+
+@app.route("/callback")
+def callback():
+    code = request.args.get('code')
+    if code:
+        token_info = sp_oauth.get_access_token(code, as_dict=True)
+        session['token_info'] = token_info
+        return redirect("/album")  
+    else:
+        return "Authorization failed.", 400
 if __name__ == '__main__':
     app.run(debug=True)

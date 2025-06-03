@@ -11,7 +11,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = os.getenv("https://findmusictypeshit.onrender.com/callback")
+REDIRECT_URI = "https://findmusictypeshit.onrender.com/callback"
 SCOPE = "user-library-read"
 
 sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,

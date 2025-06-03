@@ -5,7 +5,7 @@ import random
 import time
 import spotipy
 from dotenv import load_dotenv
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from urllib.parse import quote_plus
 import math
@@ -67,10 +67,7 @@ def find_similiar(spotify):
     secret = os.getenv("CLIENT_SECRET")
     print(id)
     print(secret)
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id= id,
-                                               client_secret= secret,
-                                               redirect_uri="https://findmusictypeshit.onrender.com/album", 
-                                               scope="user-library-read"))
+    sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
     try:
         album = sp.album(spotify)
     except Exception as e:

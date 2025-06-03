@@ -62,14 +62,18 @@ def generate(selected):
             time.sleep(2)
 
 def find_similiar(spotify):
-    token_info = session.get("token_info")
-    if not token_info:
-        return False
-
-    sp = spotipy.Spotify(auth=token_info["access_token"])
+    print(load_dotenv())
+    id =os.getenv("CLIENT_ID")
+    secret = os.getenv("CLIENT_SECRET")
+    
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id= id,
+                                               client_secret= secret,
+                                               redirect_uri="https://findmusictypeshit.onrender.com/album", 
+                                               scope="user-library-read"))
     try:
         album = sp.album(spotify)
     except:
+         print('fk')
          return False
     name = album['name']
     artist = album['artists'][0]['name']
@@ -124,7 +128,7 @@ def find_similiar(spotify):
     try:
         cover = pick.find('div', class_= 'albumListCover').find('a').find('img').get('data-src')
     except:
-        cover = sp.album(spotify)['images']['url']
+        cover = sp.album(spotify)['images'][0]['url']
     return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
 def get_genres(aoty_link):
     soup = get_soup(aoty_link)

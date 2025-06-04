@@ -9,7 +9,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import os
 from urllib.parse import quote_plus
 import math
-from flask import session
+import re
 def get_soup(url):
         scraper = cloudscraper.create_scraper()
         headers = {
@@ -62,72 +62,76 @@ def generate(selected):
             time.sleep(2)
 
 def find_similiar(spotify):
-    print(load_dotenv())
-    id =os.getenv("CLIENT_ID")
-    secret = os.getenv("CLIENT_SECRET")
-    print(id)
-    print(secret)
-    sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
     try:
+        print(load_dotenv())
+        id =os.getenv("CLIENT_ID")
+        secret = os.getenv("CLIENT_SECRET")
+        
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
+        
         album = sp.album(spotify)
-    except Exception as e:
-         print(e)
-         return False
-    name = album['name']
-    artist = album['artists'][0]['name']
-    print(name,artist)
-    query = quote_plus(name)
-    print(query)
-    url = f"https://www.albumoftheyear.org/search/?q={query}"
-    print(url)
-    search = get_soup(url)
-    results = search.find_all('div', class_='albumBlock')
-    aoty_link = None
-    for result in results:
-         artist_name = result.find_all('a')[1].find('div').text
-         album_name = result.find_all('a')[2].find('div').text
-         print(name, album_name)
-         print(artist, artist_name)
-         type = result.find('div', class_ = 'type').text
-         if name.lower() == album_name.lower() and artist.lower() == artist_name.lower():
-              aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
-              print(aoty_link)
-              break
-    if not aoty_link:
-        return False
-    time.sleep(1)
+        
+            
+        o_name = album['name']
+        name = re.sub(r'\s*\((Deluxe|Remastered|Expanded|Bonus(?: Tracks)?|.*?Version|.*?Edition)\)', '', o_name, flags=re.IGNORECASE)
+        artist = album['artists'][0]['name']
+        print(name,artist)
+        query = quote_plus(name)
+        print(query)
+        url = f"https://www.albumoftheyear.org/search/?q={query}"
+        print(url)
+        search = get_soup(url)
+        results = search.find_all('div', class_='albumBlock')
+        aoty_link = None
+        for result in results:
+            artist_name = result.find_all('a')[1].find('div').text
+            album_name = result.find_all('a')[2].find('div').text
+            
+            print(name, album_name)
+            print(artist, artist_name)
+            type = result.find('div', class_ = 'type').text
+            if name.lower() == album_name.lower() and artist.lower() == artist_name.lower() and type != 'Reissue':
+                aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
+                print(aoty_link)
+                break
+       
+            
+        time.sleep(1.3)
 
-    genres = get_genres(aoty_link=aoty_link)
-    print(genres)
-    genre = genres[random.randint(0,len(genres)-1)]
-    time.sleep(1.3)
-    genre_link = f'https://www.albumoftheyear.org{genre}/all'
-    soup2 = get_soup(genre_link)
-    pages = soup2.find('div', class_ = "pageSelectRow").find_all()[-1].text
-    page = random.randint(1, int(pages))
-    albums = soup2.find('div', class_ = 'wideLeft alignTop').find_all('div', class_ = 'albumListRow')
-    compiled = []
-    for album in albums:
-        a_genres = [x.get('href') for x in album.find('div', class_ = 'albumListGenre').find_all('a')]
-        similiarity = jaccard_similarity(genres, a_genres)
-        compiled.append({str(album.get('id')): similiarity})
-    items = [list(d.keys())[0] for d in compiled]
-    similarities = [list(d.values())[0] for d in compiled]
-    weights = [math.exp(s * 7) for s in similarities]
-    selected = random.choices(items, weights=weights, k=1)[0]
-    pick = soup2.find('div', class_ = 'wideLeft alignTop').find('div', id= selected)
-    name = pick.find('h2', class_ = 'albumListTitle').find('a').text
-    
-    date = pick.find('div', class_= 'albumListDate').text
-    genres = pick.find('div', class_= 'albumListGenre').text
-    links = pick.find('div', class_ = 'albumListLinks').find_all('a')
-    am = links[1].get('href')
-    spotify = links[2].get('href')
-    try:
-        cover = pick.find('div', class_= 'albumListCover').find('a').find('img').get('data-src')
-    except:
-        cover = sp.album(spotify)['images'][0]['url']
-    return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
+        genres = get_genres(aoty_link=aoty_link)
+        print(genres)
+        genre = genres[random.randint(0,len(genres)-1)]
+        time.sleep(1.3)
+        genre_link = f'https://www.albumoftheyear.org{genre}/all'
+        soup2 = get_soup(genre_link)
+        pages = soup2.find('div', class_ = "pageSelectRow").find_all()[-1].text
+        page = random.randint(1, int(pages))
+        albums = soup2.find('div', class_ = 'wideLeft alignTop').find_all('div', class_ = 'albumListRow')
+        compiled = []
+        for album in albums:
+            a_genres = [x.get('href') for x in album.find('div', class_ = 'albumListGenre').find_all('a')]
+            similiarity = jaccard_similarity(genres, a_genres)
+            compiled.append({str(album.get('id')): similiarity})
+        items = [list(d.keys())[0] for d in compiled]
+        similarities = [list(d.values())[0] for d in compiled]
+        weights = [math.exp(s * 7) for s in similarities]
+        selected = random.choices(items, weights=weights, k=1)[0]
+        pick = soup2.find('div', class_ = 'wideLeft alignTop').find('div', id= selected)
+        name = pick.find('h2', class_ = 'albumListTitle').find('a').text
+        
+        date = pick.find('div', class_= 'albumListDate').text
+        genres = pick.find('div', class_= 'albumListGenre').text
+        links = pick.find('div', class_ = 'albumListLinks').find_all('a')
+        am = links[1].get('href')
+        spotify = links[2].get('href')
+        try:
+            cover = pick.find('div', class_= 'albumListCover').find('a').find('img').get('data-src')
+        except:
+            cover = sp.album(spotify)['images'][0]['url']
+        return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
+    except Exception as e:
+        print(e)
+        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
 def get_genres(aoty_link):
     soup = get_soup(aoty_link)
     genres = [x.get('href') for x in soup.find_all('div', class_ = 'detailRow')[3].find_all('a')]

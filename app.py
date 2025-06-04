@@ -1,5 +1,5 @@
 from io import BytesIO
-
+#todo try and fix the thing where sometimes therell. be an erorr when doing from album, or at least just loop out the exception
 import requests
 from flask import session,Flask, render_template, request, redirect, url_for, send_file
 from t import *

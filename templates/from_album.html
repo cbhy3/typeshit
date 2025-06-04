@@ -533,6 +533,8 @@ body.dark-mode .nav-link:hover {
 </div>
   {% if link %}
         <div class="result-card">
+            <h3> You might like: </h3>
+            <br>
             <img src="/image?url={{ result['cover'] | urlencode }}" alt="Album cover" class="album-art">
             <h2 class="album-title">{{ result["name"] }}</h2>
             <div class="album-info">

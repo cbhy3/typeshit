@@ -73,7 +73,7 @@ def find_similiar(spotify):
         
             
         o_name = album['name']
-        name = re.sub(r'\s*\((Deluxe|Remastered|Expanded|Bonus(?: Tracks)?|.*?Version|.*?Edition)\)', '', o_name, flags=re.IGNORECASE)
+        name = re.sub(r'\s*[\[(](Deluxe|Remastered|Expanded|Bonus(?: Tracks)?|.*?Version|.*?Edition)[\])]', '', o_name, flags=re.IGNORECASE)
         artist = album['artists'][0]['name']
         print(name,artist)
         query = quote_plus(name)
@@ -131,7 +131,7 @@ def find_similiar(spotify):
         return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
     except Exception as e:
         print(e)
-        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
+        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure you entered a valid album link.", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
 def get_genres(aoty_link):
     soup = get_soup(aoty_link)
     genres = [x.get('href') for x in soup.find_all('div', class_ = 'detailRow')[3].find_all('a')]

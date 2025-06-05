@@ -86,13 +86,18 @@ def find_similiar(spotify):
         aoty_link = None
         try:
             for result in results:
+                type = result.find('div', class_ = 'type').text
+                if 'Single' in type or 'Reissue' in type:
+                    
+                    continue
                 artist_name = result.find_all('a')[1].find('div').text
+                
                 album_name = result.find_all('a')[2].find('div').text
                 
                 print(name, album_name)
                 print(artist, artist_name)
-                type = result.find('div', class_ = 'type').text
-                if name.lower() == album_name.lower() and artist.lower() == artist_name.lower() and type != 'Reissue':
+                
+                if name.lower() == album_name.lower() and artist.lower() == artist_name.lower():
                     aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
                     print(aoty_link)
                     break
@@ -108,6 +113,7 @@ def find_similiar(spotify):
             search2 = get_soup(url)
             results = search2.find_all('div', class_='albumBlock')
             found = False
+            print(url)
             for result in results:
                 if found:
                     print('he')
@@ -205,11 +211,15 @@ def from_playlist(spotify):
             items = [d for d in counted.keys()]
             weights = [d for d in counted.values()]
             selected = random.choices(items, weights=weights, k=1)[0]
-            return find_similiar(selected)
+            result = find_similiar(selected)
+            if result['name'] == "Something went wrong somewhere":
+                raise Exception()
+            return result
         except Exception as e:
             if tries == 6:
                 break
             tries += 1
+            time.sleep(1)
             print(e)
 
     return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure your playlist is public. ", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}

@@ -10,6 +10,7 @@ import os
 from urllib.parse import quote_plus
 import math
 import re
+import traceback
 def get_soup(url):
         scraper = cloudscraper.create_scraper()
         headers = {
@@ -83,30 +84,67 @@ def find_similiar(spotify):
         search = get_soup(url)
         results = search.find_all('div', class_='albumBlock')
         aoty_link = None
-        for result in results:
-            artist_name = result.find_all('a')[1].find('div').text
-            album_name = result.find_all('a')[2].find('div').text
+        try:
+            for result in results:
+                artist_name = result.find_all('a')[1].find('div').text
+                album_name = result.find_all('a')[2].find('div').text
+                
+                print(name, album_name)
+                print(artist, artist_name)
+                type = result.find('div', class_ = 'type').text
+                if name.lower() == album_name.lower() and artist.lower() == artist_name.lower() and type != 'Reissue':
+                    aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
+                    print(aoty_link)
+                    break
+            if aoty_link == None:
+                print("hello")
+                aoty_link = f'https://www.albumoftheyear.org{results[0].find_all('a')[0].get('href')}'
+        except Exception as e:
+            print(e)
+            url = f"https://www.albumoftheyear.org/search/?q={quote_plus(artist)}"
+            album = name.split()
+            print(album)
+            time.sleep(1)
+            search2 = get_soup(url)
+            results = search2.find_all('div', class_='albumBlock')
+            found = False
+            for result in results:
+                if found:
+                    print('he')
+                    break
+                artist_name = result.find_all('a')[1].find('div').text
+                album_name = result.find_all('a')[2].find('div').text
+                for i in album:
+                    print(i, album_name)
+                    if i.upper() in album_name.upper():
+                        aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
+                        found = True
+                        print(aoty_link)
+                        break
+            if aoty_link == None:
+                print("yo")
+                aoty_link = f'https://www.albumoftheyear.org{results[0].find_all('a')[0].get('href')}'
+
+        print(aoty_link)
             
-            print(name, album_name)
-            print(artist, artist_name)
-            type = result.find('div', class_ = 'type').text
-            if name.lower() == album_name.lower() and artist.lower() == artist_name.lower() and type != 'Reissue':
-                aoty_link = f'https://www.albumoftheyear.org{result.find_all('a')[0].get('href')}'
-                print(aoty_link)
-                break
-       
             
         time.sleep(1.3)
 
         genres = get_genres(aoty_link=aoty_link)
         print(genres)
         genre = genres[random.randint(0,len(genres)-1)]
+        print(genre)
         time.sleep(1.3)
-        genre_link = f'https://www.albumoftheyear.org{genre}/all'
+        user_or_critic = random.randint(1,2)
+        genre_link = f'https://www.albumoftheyear.org{genre}/all' if user_or_critic == 1 else f'https://www.albumoftheyear.org/ratings/user-highest-rated/all/{str(genre).split('-', 1)[1]}'
+        print(genre_link)
         soup2 = get_soup(genre_link)
         pages = soup2.find('div', class_ = "pageSelectRow").find_all()[-1].text
         page = random.randint(1, int(pages))
-        albums = soup2.find('div', class_ = 'wideLeft alignTop').find_all('div', class_ = 'albumListRow')
+        print(page)
+        time.sleep(1)
+        soup3 = get_soup(f'{genre_link}/{page}')
+        albums = soup3.find('div', class_ = 'wideLeft alignTop').find_all('div', class_ = 'albumListRow')
         compiled = []
         for album in albums:
             a_genres = [x.get('href') for x in album.find('div', class_ = 'albumListGenre').find_all('a')]
@@ -116,12 +154,13 @@ def find_similiar(spotify):
         similarities = [list(d.values())[0] for d in compiled]
         weights = [math.exp(s * 7) for s in similarities]
         selected = random.choices(items, weights=weights, k=1)[0]
-        pick = soup2.find('div', class_ = 'wideLeft alignTop').find('div', id= selected)
+        pick = soup3.find('div', class_ = 'wideLeft alignTop').find('div', id= selected)
         name = pick.find('h2', class_ = 'albumListTitle').find('a').text
         
         date = pick.find('div', class_= 'albumListDate').text
         genres = pick.find('div', class_= 'albumListGenre').text
         links = pick.find('div', class_ = 'albumListLinks').find_all('a')
+        print(links)
         am = links[1].get('href')
         spotify = links[2].get('href')
         try:
@@ -130,7 +169,7 @@ def find_similiar(spotify):
             cover = sp.album(spotify)['images'][0]['url']
         return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure you entered a valid album link.", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
 def get_genres(aoty_link):
     soup = get_soup(aoty_link)
@@ -144,27 +183,33 @@ def jaccard_similarity(list1, list2):
     return len(intersection) / len(union)
 
 def from_playlist(spotify):
-    try:
-        print(load_dotenv())
-        id =os.getenv("CLIENT_ID")
-        secret = os.getenv("CLIENT_SECRET")
-        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
-        playlist = sp.playlist(spotify)
-        tracks = playlist['tracks']['items'] 
-        albums = []
-        counted = {}
-        for i in tracks:
-            if i['track']['album']['album_type'] == 'album':
-                albums.append(i['track']['album']['external_urls']['spotify'])
-        for x in albums:
-            if x not in counted.keys():
-                counted[x] = 1
-            else:
-                counted[x] += 1
-        items = [d for d in counted.keys()]
-        weights = [d for d in counted.values()]
-        selected = random.choices(items, weights=weights, k=1)[0]
-        return find_similiar(selected)
-    except Exception as e:
-        print(e)
-        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure your playlist is public. ", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
+    tries = 0
+    while True:
+        try:
+            print(load_dotenv())
+            id =os.getenv("CLIENT_ID")
+            secret = os.getenv("CLIENT_SECRET")
+            sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
+            playlist = sp.playlist(spotify)
+            tracks = playlist['tracks']['items'] 
+            albums = []
+            counted = {}
+            for i in tracks:
+                if i['track']['album']['album_type'] == 'album':
+                    albums.append(i['track']['album']['external_urls']['spotify'])
+            for x in albums:
+                if x not in counted.keys():
+                    counted[x] = 1
+                else:
+                    counted[x] += 1
+            items = [d for d in counted.keys()]
+            weights = [d for d in counted.values()]
+            selected = random.choices(items, weights=weights, k=1)[0]
+            return find_similiar(selected)
+        except Exception as e:
+            if tries == 6:
+                break
+            tries += 1
+            print(e)
+
+    return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure your playlist is public. ", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}

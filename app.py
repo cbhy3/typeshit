@@ -38,5 +38,15 @@ def from_album():
 
     return render_template('from_album.html', link=link, result = result )
 
+@app.route('/playlist', methods = ['GET','POST'])
+def playlist():
+    link = None
+    result = None
+    if request.method == 'POST':
+        link = request.form.get('link')
+        result = from_playlist(link)
+
+    return render_template('from_playlist.html', link=link, result = result )
+
 if __name__ == '__main__':
     app.run(debug=True)

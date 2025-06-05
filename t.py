@@ -142,3 +142,29 @@ def jaccard_similarity(list1, list2):
     intersection = set1 & set2
     union = set1 | set2
     return len(intersection) / len(union)
+
+def from_playlist(spotify):
+    try:
+        print(load_dotenv())
+        id =os.getenv("CLIENT_ID")
+        secret = os.getenv("CLIENT_SECRET")
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=id, client_secret= secret))
+        playlist = sp.playlist(spotify)
+        tracks = playlist['tracks']['items'] 
+        albums = []
+        counted = {}
+        for i in tracks:
+            if i['track']['album']['album_type'] == 'album':
+                albums.append(i['track']['album']['external_urls']['spotify'])
+        for x in albums:
+            if x not in counted.keys():
+                counted[x] = 1
+            else:
+                counted[x] += 1
+        items = [d for d in counted.keys()]
+        weights = [d for d in counted.values()]
+        selected = random.choices(items, weights=weights, k=1)[0]
+        return find_similiar(selected)
+    except Exception as e:
+        print(e)
+        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure your playlist is public. ", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}

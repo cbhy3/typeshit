@@ -64,8 +64,9 @@ def generate(selected):
 
 def find_similiar(spotify):
     tries = 0
-    while True:
+    while tries <= 6:
         try:
+            tries +=1
             print(load_dotenv())
             id =os.getenv("CLIENT_ID")
             secret = os.getenv("CLIENT_SECRET")
@@ -180,11 +181,8 @@ def find_similiar(spotify):
                 cover = sp.album(spotify)['images'][0]['url']
             return {"name": name, "cover": cover, "date": date, "genres": genres, "am": am, "spotify": spotify}   
         except Exception as e:
-            if tries == 6:
-                break
-            tries +=1
             print(traceback.format_exc())
-    return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure you entered a valid album link.", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
+        return {"name": "Something went wrong somewhere", "cover": 'https://developers.google.com/static/maps/documentation/streetview/images/error-image-generic.png', "date": "Please try again. Make sure you entered a valid album link.", "genres": 'Oops', 'am': 'https://music.apple.com/us/song/never-gonna-give-you-up/1452434833', 'spotify':'https://open.spotify.com/track/4PTG3Z6ehGkBFwjybzWkR8'}
 def get_genres(aoty_link):
     soup = get_soup(aoty_link)
     genres = [x.get('href') for x in soup.find_all('div', class_ = 'detailRow')[3].find_all('a')]

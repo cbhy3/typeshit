@@ -145,7 +145,10 @@ def find_similiar(spotify):
         genre_link = f'https://www.albumoftheyear.org{genre}/all' if user_or_critic == 1 else f'https://www.albumoftheyear.org/ratings/user-highest-rated/all/{str(genre).split('-', 1)[1]}'
         print(genre_link)
         soup2 = get_soup(genre_link)
-        pages = soup2.find('div', class_ = "pageSelectRow").find_all()[-1].text
+        try:
+            pages = soup2.find('div', class_ = "pageSelectRow").find_all()[-1].text
+        except AttributeError:
+            pages = 1
         page = random.randint(1, int(pages))
         print(page)
         time.sleep(1)
